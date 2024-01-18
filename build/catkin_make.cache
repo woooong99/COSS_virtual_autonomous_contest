@@ -1,0 +1,2 @@
+MORAI-ROS_morai_msgs:test:vesc/vesc:vesc/vesc_ackermann:vesc/vesc_driver:vesc/vesc_msgs
+-DCATKIN_DEVEL_PREFIX=/home/kss/kmu_ws/devel -DCMAKE_INSTALL_PREFIX=/home/kss/kmu_ws/install -G Unix Makefiles
