@@ -1,0 +1,1 @@
+# COSS_virtual_autonomous_contest
