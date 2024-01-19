@@ -35,15 +35,18 @@ class Traffic_control:
         self.degree_per_pixel = 0
         self.steer = 0.5
         self.obstacle_flag = False
+        
 
     def traffic_CB(self,msg):
+       # print(msg)
         self.traffic_msg = msg
-        if self.traffic_msg.trafficLightIndex == "SN000002":
-            signal = self.traffic_msg.trafficLightStatus
-            if self.prev_signal != signal:
-                self.prev_signal = signal
+        if self.traffic_msg.trafficLightIndex == "SN000000":
+            # print(msg)
+            self.signal = self.traffic_msg.trafficLightStatus
+            if self.prev_signal != self.signal:
+                self.prev_signal = self.signal
             # first_time = time()
-            self.traffic_think()
+            #self.traffic_think()
             # second_time = time()
             # print(f"different:{second_time-first_time}")
 
@@ -103,33 +106,67 @@ class Traffic_control:
         left_indeices = np.where(left_hist>20)[0]
         right_indeices = np.where(right_hist>20)[0] + 320
         cross_indices = np.where(down_hist>400)[0] + 240
+        print(cross_indices)
+        
+        # if len(cross_indices) != 0:  400 240
+        #     cross_threshold = 25
+        #     cross_diff = cross_indices[-1] - cross_indices[0]
+        #     if cross_threshold < cross_diff:
+        #         self.cross_flag = True
+        #         cv2.rectangle(warped_img,(0,cross_indices[0]),(x,cross_indices[-1]),(0,255,0),3) 
+        
+        #     else:
+        #         self.cross_flag = False
+    
+        # else:
+        #     self.cross_flag = False
+            # print("1")
+
+        
         try: 
             cross_threshold = 25
             cross_diff = cross_indices[-1] - cross_indices[0]
-            if cross_threshold < cross_diff:
+            if len(cross_indices) != 0:
+                sleep(0.3)
                 self.cross_flag = True
-                cv2.rectangle(warped_img,[0,cross_indices[0]],[x,cross_indices[-1]],[0,255,0],3) 
+                cv2.rectangle(warped_img,(0,cross_indices[0]),(x,cross_indices[-1]),(0,255,0),3) 
         
             else:
                 self.cross_flag = False
         except:
             self.cross_flag = False
+       
+       
+       
+        # try: 
+        #     cross_threshold = 25
+        #     cross_diff = cross_indices[-1] - cross_indices[0]
+        #     if cross_threshold < cross_diff:
+        #         self.cross_flag = True
+        #         cv2.rectangle(warped_img,(0,cross_indices[0]),(x,cross_indices[-1]),(0,255,0),3) 
+        
+        #     else:
+        #         self.cross_flag = False
+        # except:
+        #     self.cross_flag = False
+            # print("1")
+
 
         indices = np.where(histogram_x>20)[0]
-        print("left_indices",left_indeices)
-        print("right_indices",right_indeices)
-        print("check",len(left_indeices))
+        # print("left_indices",left_indeices)
+        # print("right_indices",right_indeices)
+        # print("check",len(left_indeices))
 
         try:
             if len(left_indeices)!=0 and len(right_indeices)!=0:
                 center_index = (indices[0]+indices[-1])//2
-                print("both_line")
+                # print("both_line")
             elif len(left_indeices) !=0 and len(right_indeices)==0:
                 center_index = (left_indeices[0]+left_indeices[-1])//2
-                print("left_line")
+                # print("left_line")
             elif len(left_indeices) ==0 and len(right_indeices)!=0:
                 center_index = (right_indeices[0]+right_indeices[-1])//2
-                print("right_line")
+                # print("right_line")
                 
         except:
             center_index = x//2
@@ -188,17 +225,22 @@ class Traffic_control:
     
     def action(self):
         if len(self.img) != 0:
-            if self.cross_flag == True and self.signal == 1:
+            #print(self.cross_flag)
+            if self.cross_flag == True and self.signal == 1: #red light //
                 speed = 0
                 steer = 0.5
+                # print("red light")
             else:
-                if self.obstacle_flag == True:
+                if self.signal == 16:
+                # if self.obstacle_flag == True:
                     steer = self.steer
                     speed = 500
+                    # print("green light")
                 else:
                     steer = (self.center_index-self.standard_line) * self.degree_per_pixel
                     steer = (0.5 + steer*2)
                     speed = 1000
+                    #print("haha")
             # print(f"steer:{steer}")
             self.steer_msg.data  = steer
             self.speed_msg.data = speed
@@ -207,6 +249,7 @@ class Traffic_control:
             cv2.imshow("img",self.img)
             cv2.imshow("warped_img",self.warped_img)
             cv2.waitKey(1)
+    
 
 def main():
     try:
